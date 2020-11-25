@@ -94,8 +94,9 @@ public extension UIImage {
         guard let imageSource = CGImageSourceCreateWithData(data as CFData, nil) else { return }
         self.imageSource = imageSource
         imageData = data
-        
-        calculateFrameDelay(try delayTimes(imageSource), levelOfIntegrity: levelOfIntegrity)
+
+        frameDelays = try delayTimes(imageSource)
+        calculateFrameDelay(frameDelays ?? [], levelOfIntegrity: levelOfIntegrity)
         calculateFrameSize()
     }
     
@@ -111,6 +112,14 @@ public extension UIImage {
     /// - Return number of frames
     func framesCount() -> Int {
         return displayOrder?.count ?? 0
+    }
+
+    /// Check the number of frame for this gif
+    ///
+    /// - Return number of frames
+    func framesDelay(at index: Int) -> Float {
+        guard let i = displayOrder?[index] else { return 0 }
+        return frameDelays?[i] ?? 0
     }
     
     /// Set backing data for this gif. Overwrites any existing data.
@@ -283,6 +292,7 @@ private let _imageSizeKey = malloc(4)
 private let _imageCountKey = malloc(4)
 private let _displayOrderKey = malloc(4)
 private let _imageDataKey = malloc(4)
+private let _frameDelaysKey = malloc(4)
 
 public extension UIImage {
     
@@ -314,6 +324,11 @@ public extension UIImage {
     var displayOrder: [Int]?{
         get { return objc_getAssociatedObject(self, _displayOrderKey!) as? [Int] }
         set { objc_setAssociatedObject(self, _displayOrderKey!, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+    }
+
+    var frameDelays: [Float]?{
+        get { return objc_getAssociatedObject(self, _frameDelaysKey!) as? [Float] }
+        set { objc_setAssociatedObject(self, _frameDelaysKey!, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
     }
     
     var imageData:Data? {
